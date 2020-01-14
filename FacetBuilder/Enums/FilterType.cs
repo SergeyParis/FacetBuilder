@@ -2,6 +2,7 @@
 {
     public enum FilterType
     {
-        Contains
+        Contains,
+        Equal
     }
 }

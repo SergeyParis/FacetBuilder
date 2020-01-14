@@ -85,6 +85,12 @@ namespace FacetBuilder
                             }
 
                             break;
+                        case FilterType.Equal:
+                            if (!filterByValue.ToString().Equals(filterWhatValue.ToString()))
+                            {
+                                filteringResult = false;
+                            }
+                            break;
 
                         default: throw new NotImplementedException();
                     }
