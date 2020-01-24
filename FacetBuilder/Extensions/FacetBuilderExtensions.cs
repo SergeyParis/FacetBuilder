@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using FacetBuilder.Models;
 
@@ -6,43 +7,49 @@ namespace FacetBuilder.Extensions
 {
     public static class FacetBuilderExtensions
     {
-        public static Rule<TFacet, TIn, TFilter> FilterBy<TFacet, TIn, TFilter, TProperty>(
-            this Rule<TFacet, TIn, TFilter> rule, Expression<Func<TFilter, TProperty>> expression)
+        public static Rule<TFacet, TIn, TFilter, TProperty> FilterBy<TFacet, TIn, TFilter, TProperty>(this Rule<TFacet, TIn, TFilter, TProperty> rule, Func<TFilter, object> func)
             where TFacet : class
             where TIn : class
             where TFilter : class
         {
-            rule.FilterByExpression = new ExpressionSaver<TFilter, TProperty>(expression);
+            rule.FilterByFunc = func;
+            return rule;
+        }
+        
+        public static Rule<TFacet, TIn, TFilter, TProperty> FilterWhat<TFacet, TIn, TFilter, TProperty>(this Rule<TFacet, TIn, TFilter, TProperty> rule, Func<TIn, object> func)
+            where TFacet : class
+            where TIn : class
+            where TFilter : class
+        {
+            rule.FilterWhatFunc = func;
             return rule;
         }
 
-        public static Rule<TFacet, TIn, TFilter> FilterWhat<TFacet, TIn, TFilter, TProperty>(
-            this Rule<TFacet, TIn, TFilter> rule, Expression<Func<TIn, TProperty>> expression)
+        public static Rule<TFacet, TIn, TFilter, TProperty> To<TFacet, TIn, TFilter, TProperty>(
+            this Rule<TFacet, TIn, TFilter,TProperty> rule, Expression<Func<TFacet, IEnumerable<TProperty>>> expression)
             where TFacet : class
             where TIn : class
             where TFilter : class
         {
-            rule.FilterWhatExpression = new ExpressionSaver<TIn, TProperty>(expression);
+            rule.FacetExpression = new ExpressionSaver<TFacet, IEnumerable<TProperty>>(expression);
             return rule;
         }
 
-        public static Rule<TFacet, TIn, TFilter> To<TFacet, TIn, TFilter, TProperty>(
-            this Rule<TFacet, TIn, TFilter> rule, Expression<Func<TFacet, TProperty>> expression)
+        public static Rule<TFacet, TIn, TFilter, TProperty> As<TFacet, TIn, TFilter, TProperty>(this Rule<TFacet, TIn, TFilter, TProperty> rule, Func<TIn, TProperty> func)
             where TFacet : class
             where TIn : class
             where TFilter : class
         {
-            rule.FacetExpression = new ExpressionSaver<TFacet, TProperty>(expression);
+            rule.AsFunc = func;
             return rule;
         }
-
-        public static Rule<TFacet, TIn, TFilter> As<TFacet, TIn, TFilter>(this Rule<TFacet, TIn, TFilter> rule,
-            Expression<Func<TIn, dynamic>> expression)
+        
+        public static Rule<TFacet, TIn, TFilter, TProperty> AsFilter<TFacet, TIn, TFilter, TProperty>(this Rule<TFacet, TIn, TFilter, TProperty> rule, Func<TProperty, bool> func)
             where TFacet : class
             where TIn : class
             where TFilter : class
         {
-            rule.AsExpression = new ExpressionSaver<TIn, dynamic>(expression);
+            rule.AsFilterFunc = func;
             return rule;
         }
     }

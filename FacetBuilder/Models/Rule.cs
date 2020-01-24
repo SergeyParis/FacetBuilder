@@ -1,14 +1,18 @@
-﻿using FacetBuilder.Enums;
+﻿using System;
+using System.Collections.Generic;
+using FacetBuilder.Enums;
 
 namespace FacetBuilder.Models
 {
-    public class Rule<TFacet, TIn, TOut>
+    public class Rule<TFacet, TIn, TFilter, TProperty>
+        where TFacet: class
     {
         public FilterType Type { get; }
-        public ExpressionBase FacetExpression { get; set; }
-        public ExpressionBase FilterWhatExpression { get; set; }
-        public ExpressionBase FilterByExpression { get; set; }
-        public ExpressionBase AsExpression { get; set; }
+        public ExpressionSaver<TFacet, IEnumerable<TProperty>> FacetExpression { get; set; }
+        public Func<TIn, object> FilterWhatFunc { get; set; }
+        public Func<TFilter, object> FilterByFunc { get; set; }
+        public Func<TIn, TProperty> AsFunc { get; set; }
+        public Func<TProperty, bool> AsFilterFunc { get; set; }
 
         public Rule(FilterType type)
         {

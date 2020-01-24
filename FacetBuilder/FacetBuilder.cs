@@ -8,21 +8,22 @@ using Newtonsoft.Json;
 namespace FacetBuilder
 {
     /// <typeparam name="TFacet">Fields of this class must be generic collections</typeparam>
-    class FacetBuilder<TFacet, TIn, TFilter>
+    class FacetBuilder<TFacet, TIn, TFilter, TProperty>
         where TFacet : class, new()
         where TIn : class
         where TFilter : class
+        where TProperty : class
     {
-        private readonly List<Rule<TFacet, TIn, TFilter>> _rules;
+        private readonly List<Rule<TFacet, TIn, TFilter, TProperty>> _rules;
 
         public FacetBuilder()
         {
-            _rules = new List<Rule<TFacet, TIn, TFilter>>();
+            _rules = new List<Rule<TFacet, TIn, TFilter, TProperty>>();
         }
 
-        public Rule<TFacet, TIn, TFilter> AddRule(FilterType type)
+        public Rule<TFacet, TIn, TFilter, TProperty> AddRule(FilterType type)
         {
-            var rule = new Rule<TFacet, TIn, TFilter>(type);
+            var rule = new Rule<TFacet, TIn, TFilter, TProperty>(type);
             _rules.Add(rule);
             return rule;
         }
@@ -33,44 +34,40 @@ namespace FacetBuilder
 
             var facet = new TFacet();
 
-
+            var i = 0;
             foreach (var rule in _rules)
             {
-                var facetPropertyExpression = rule.FacetExpression;
+                var facetProperty = rule.FacetExpression;
 
                 var filteredData = CompileOneFacetProperty(rule, listData, filter);
-                var mappedData = filteredData.Select(rule.AsExpression.GetValue).ToList();
+                var mappedData = filteredData.Select(rule.AsFunc.Invoke).Where(rule.AsFilterFunc.Invoke).Distinct().ToList();
 
-                var propertyName = facetPropertyExpression.Expression.ToString().Split('.').Skip(1).First();
+                var propertyName = facetProperty.Expression.ToString().Split('.').Skip(1).First();
                 var targetProperty = facet.GetType().GetProperty(propertyName);
-                var valueOfTargetProperty = JsonConvert.DeserializeObject(JsonConvert.SerializeObject(mappedData), targetProperty.PropertyType);
 
-                try
-                {
-                    targetProperty.SetValue(facet, valueOfTargetProperty, null);
-                }
-                catch (NullReferenceException e)
-                {
-                    // Log error: function 'To' must be use only for choose property
-                }
+                targetProperty.SetValue(facet, mappedData, null);
             }
-
+            
             return facet;
         }
-
-        private List<TIn> CompileOneFacetProperty(Rule<TFacet, TIn, TFilter> currentRule, List<TIn> data,
+        
+        private List<TIn> CompileOneFacetProperty(Rule<TFacet, TIn, TFilter, TProperty> currentRule, List<TIn> data,
             TFilter filter)
         {
             var resultCollection = new List<TIn>();
 
             foreach (var oneData in data)
             {
-                bool filteringResult = true;
+                var filteringResult = true;
                 foreach (var oneRule in _rules)
                 {
-                    var filterByValue = oneRule.FilterByExpression.GetValue(filter);
-                    var filterWhatValue = oneRule.FilterWhatExpression.GetValue(oneData);
-
+                    var filterByValue = oneRule.FilterByFunc.Invoke(filter);
+                    var filterWhatValue = oneRule.FilterWhatFunc.Invoke(oneData);
+                    
+                    if (filterWhatValue == null)
+                    {
+                        continue;
+                    }
                     if (filterByValue == null)
                         continue;
                     if (oneRule == currentRule)
@@ -79,19 +76,19 @@ namespace FacetBuilder
                     switch (oneRule.Type)
                     {
                         case FilterType.Contains:
-                            if (!Enumerable.Contains(filterByValue, filterWhatValue))
+                            if (!Enumerable.Contains((IEnumerable<object>) filterByValue, filterWhatValue))
                             {
                                 filteringResult = false;
                             }
-
                             break;
+                        
                         case FilterType.Equal:
                             if (!filterByValue.ToString().Equals(filterWhatValue.ToString()))
                             {
                                 filteringResult = false;
                             }
-                            break;
 
+                            break;
                         default: throw new NotImplementedException();
                     }
                 }
