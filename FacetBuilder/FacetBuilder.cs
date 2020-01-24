@@ -8,11 +8,11 @@ using Newtonsoft.Json;
 namespace FacetBuilder
 {
     /// <typeparam name="TFacet">Fields of this class must be generic collections</typeparam>
-    class FacetBuilder<TFacet, TIn, TFilter, TProperty>
+    public class FacetBuilder<TFacet, TIn, TFilter, TProperty>
         where TFacet : class, new()
         where TIn : class
         where TFilter : class
-        where TProperty : class
+        where TProperty : class, IEquatable<TProperty>
     {
         private readonly List<Rule<TFacet, TIn, TFilter, TProperty>> _rules;
 
