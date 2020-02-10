@@ -12,7 +12,7 @@ namespace FacetBuilder
         where TFacet : class, new()
         where TIn : class
         where TFilter : class
-        where TProperty : class, IEquatable<TProperty>
+        where TProperty : class
     {
         private readonly List<Rule<TFacet, TIn, TFilter, TProperty>> _rules;
 
