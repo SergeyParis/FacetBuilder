@@ -7,7 +7,7 @@ namespace FacetBuilder.Extensions
 {
     public static class FacetBuilderExtensions
     {
-        public static Rule<TFacet, TIn, TFilter, TProperty> FilterBy<TFacet, TIn, TFilter, TProperty>(this Rule<TFacet, TIn, TFilter, TProperty> rule, Func<TFilter, object> func)
+        public static Rule<TFacet, TIn, TFilter> FilterBy<TFacet, TIn, TFilter>(this Rule<TFacet, TIn, TFilter> rule, Func<TFilter, object> func)
             where TFacet : class
             where TIn : class
             where TFilter : class
@@ -16,7 +16,7 @@ namespace FacetBuilder.Extensions
             return rule;
         }
         
-        public static Rule<TFacet, TIn, TFilter, TProperty> FilterWhat<TFacet, TIn, TFilter, TProperty>(this Rule<TFacet, TIn, TFilter, TProperty> rule, Func<TIn, object> func)
+        public static Rule<TFacet, TIn, TFilter> FilterWhat<TFacet, TIn, TFilter>(this Rule<TFacet, TIn, TFilter> rule, Func<TIn, object> func)
             where TFacet : class
             where TIn : class
             where TFilter : class
@@ -25,29 +25,36 @@ namespace FacetBuilder.Extensions
             return rule;
         }
 
-        public static Rule<TFacet, TIn, TFilter, TProperty> To<TFacet, TIn, TFilter, TProperty>(
-            this Rule<TFacet, TIn, TFilter,TProperty> rule, Expression<Func<TFacet, IEnumerable<TProperty>>> expression)
+        public static ExtendedRule<TFacet, TIn, TFilter, TProperty> To<TFacet, TIn, TFilter, TProperty>(this Rule<TFacet, TIn, TFilter> rule, Expression<Func<TFacet, IEnumerable<TProperty>>> expression)
             where TFacet : class
             where TIn : class
             where TFilter : class
+            where TProperty : class
         {
-            rule.FacetExpression = new ExpressionSaver<TFacet, IEnumerable<TProperty>>(expression);
-            return rule;
+            var extendedRule = new ExtendedRule<TFacet, TIn, TFilter, TProperty>(rule)
+            {
+                FacetExpression = new ExpressionSaver<TFacet, IEnumerable<TProperty>>(expression)
+            };
+            rule.Rules.Remove(rule);
+            rule.Rules.Add(extendedRule);
+            return extendedRule;
         }
 
-        public static Rule<TFacet, TIn, TFilter, TProperty> As<TFacet, TIn, TFilter, TProperty>(this Rule<TFacet, TIn, TFilter, TProperty> rule, Func<TIn, TProperty> func)
+        public static ExtendedRule<TFacet, TIn, TFilter, TProperty> As<TFacet, TIn, TFilter, TProperty>(this ExtendedRule<TFacet, TIn, TFilter, TProperty> rule, Func<TIn, TProperty> func)
             where TFacet : class
             where TIn : class
             where TFilter : class
+            where TProperty : class
         {
             rule.AsFunc = func;
             return rule;
         }
         
-        public static Rule<TFacet, TIn, TFilter, TProperty> AsFilter<TFacet, TIn, TFilter, TProperty>(this Rule<TFacet, TIn, TFilter, TProperty> rule, Func<TProperty, bool> func)
+        public static ExtendedRule<TFacet, TIn, TFilter, TProperty> AsFilter<TFacet, TIn, TFilter, TProperty>(this ExtendedRule<TFacet, TIn, TFilter, TProperty> rule, Func<TProperty, bool> func)
             where TFacet : class
             where TIn : class
             where TFilter : class
+            where TProperty : class
         {
             rule.AsFilterFunc = func;
             return rule;

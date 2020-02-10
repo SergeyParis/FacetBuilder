@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using FacetBuilder.Helpers;
 using FacetBuilder.Models;
@@ -9,22 +10,21 @@ namespace FacetBuilder
     /// <typeparam name="TIn"></typeparam>
     /// <typeparam name="TFilter"></typeparam>
     /// <typeparam name="TProperty"></typeparam>
-    public class FacetBuilder<TFacet, TIn, TFilter, TProperty>
+    public class FacetBuilder<TFacet, TIn, TFilter>
         where TFacet : class, new()
         where TIn : class
         where TFilter : class
-        where TProperty : class
     {
-        private readonly List<Rule<TFacet, TIn, TFilter, TProperty>> _rules;
+        private readonly List<Rule<TFacet, TIn, TFilter>> _rules;
 
         public FacetBuilder()
         {
-            _rules = new List<Rule<TFacet, TIn, TFilter, TProperty>>();
+            _rules = new List<Rule<TFacet, TIn, TFilter>>();
         }
 
-        public Rule<TFacet, TIn, TFilter, TProperty> AddRule()
+        public Rule<TFacet, TIn, TFilter> AddRule()
         {
-            var rule = new Rule<TFacet, TIn, TFilter, TProperty>();
+            var rule = new Rule<TFacet, TIn, TFilter>(_rules);
             _rules.Add(rule);
             return rule;
         }
@@ -36,23 +36,34 @@ namespace FacetBuilder
             var facet = new TFacet();
 
             var i = 0;
-            foreach (var rule in _rules)
+            foreach (var preRule in _rules)
             {
-                var facetProperty = rule.FacetExpression;
+                var rule = (AAA<TFacet, TIn, TFilter>) preRule;
+                
+                var func1 = rule.GetAsFunc();
+                var func2 = rule.GetAsFilterFunc();
 
-                var filteredData = CompileOneFacetProperty(rule, listData, filter);
-                var mappedData = filteredData.Select(rule.AsFunc.Invoke).Where(rule.AsFilterFunc.Invoke).Distinct().ToList();
+                var a = 10;
 
-                var propertyName = facetProperty.Expression.ToString().Split('.').Skip(1).First();
-                var targetProperty = facet.GetType().GetProperty(propertyName);
-
-                targetProperty.SetValue(facet, mappedData, null);
+                // var facetProperty = rule.FacetExpression;
+                //
+                // var filteredData = CompileOneFacetProperty(rule, listData, filter);
+                //
+                // var select = (Func<dynamic, dynamic>) rule.AsFunc;
+                // var where = (Func<dynamic, dynamic>) rule.AsFilterFunc;
+                // var mappedData = filteredData.Select(rule.AsFunc).Where(rule.AsFilterFunc).Distinct().ToList();
+                //
+                //
+                // var propertyName = facetProperty.Expression.ToString().Split('.').Skip(1).First();
+                // var targetProperty = facet.GetType().GetProperty(propertyName);
+                //
+                // targetProperty.SetValue(facet, mappedData, null);
             }
             
             return facet;
         }
         
-        private List<TIn> CompileOneFacetProperty(Rule<TFacet, TIn, TFilter, TProperty> currentRule, List<TIn> data,
+        private List<TIn> CompileOneFacetProperty(Rule<TFacet, TIn, TFilter> currentRule, List<TIn> data,
             TFilter filter)
         {
             var resultCollection = new List<TIn>();

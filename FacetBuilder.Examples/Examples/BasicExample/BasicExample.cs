@@ -8,7 +8,7 @@ namespace FacetBuilder.Examples.Examples.BasicExample
     {
         public ResultFacet Start()
         {
-            var builder = new FacetBuilder<ResultFacet, FacetDataModel, Filter, FacetWithIdName>();
+            var builder = new FacetBuilder<ResultFacet, FacetDataModel, Filter>();
 
             builder.AddRule()
                 .FilterBy(x => x.EmployeeId)
