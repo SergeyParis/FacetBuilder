@@ -1,13 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using FacetBuilder.Enums;
+using FacetBuilder.Helpers;
 using FacetBuilder.Models;
-using Newtonsoft.Json;
 
 namespace FacetBuilder
 {
     /// <typeparam name="TFacet">Fields of this class must be generic collections</typeparam>
+    /// <typeparam name="TIn"></typeparam>
+    /// <typeparam name="TFilter"></typeparam>
+    /// <typeparam name="TProperty"></typeparam>
     public class FacetBuilder<TFacet, TIn, TFilter, TProperty>
         where TFacet : class, new()
         where TIn : class
@@ -21,9 +22,9 @@ namespace FacetBuilder
             _rules = new List<Rule<TFacet, TIn, TFilter, TProperty>>();
         }
 
-        public Rule<TFacet, TIn, TFilter, TProperty> AddRule(FilterType type)
+        public Rule<TFacet, TIn, TFilter, TProperty> AddRule()
         {
-            var rule = new Rule<TFacet, TIn, TFilter, TProperty>(type);
+            var rule = new Rule<TFacet, TIn, TFilter, TProperty>();
             _rules.Add(rule);
             return rule;
         }
@@ -73,23 +74,19 @@ namespace FacetBuilder
                     if (oneRule == currentRule)
                         continue;
 
-                    switch (oneRule.Type)
+                    if (filterByValue.IsEnumerable() && !filterByValue.IsString() && !filterByValue.IsExpandoObject())
                     {
-                        case FilterType.Contains:
-                            if (!Enumerable.Contains((IEnumerable<object>) filterByValue, filterWhatValue))
-                            {
-                                filteringResult = false;
-                            }
-                            break;
-                        
-                        case FilterType.Equal:
-                            if (!filterByValue.ToString().Equals(filterWhatValue.ToString()))
-                            {
-                                filteringResult = false;
-                            }
-
-                            break;
-                        default: throw new NotImplementedException();
+                        if (!((IEnumerable<object>) filterByValue).Contains(filterWhatValue))
+                        {
+                            filteringResult = false;
+                        }
+                    }
+                    else
+                    {
+                        if (!filterByValue.ToString().Equals(filterWhatValue.ToString()))
+                        {
+                            filteringResult = false;
+                        }
                     }
                 }
 

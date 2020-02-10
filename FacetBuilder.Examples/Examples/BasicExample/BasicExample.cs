@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using FacetBuilder.Enums;
 using FacetBuilder.Examples.Examples.BasicExample.Models;
 using FacetBuilder.Extensions;
 
@@ -11,21 +10,21 @@ namespace FacetBuilder.Examples.Examples.BasicExample
         {
             var builder = new FacetBuilder<ResultFacet, FacetDataModel, Filter, FacetWithIdName>();
 
-            builder.AddRule(FilterType.Equal)
+            builder.AddRule()
                 .FilterBy(x => x.EmployeeId)
                 .FilterWhat(x => x.Employee.Id)
                 .To(x => x.EmployeeId)
                 .As(x => new FacetWithIdName { Id = x.Employee.Id, Name = x.Employee.Name })
                 .AsFilter(x => x.Id != null);
 
-            builder.AddRule(FilterType.Equal)
+            builder.AddRule()
                 .FilterBy(x => x.CompanyName)
                 .FilterWhat(x => x.Company.Name)
                 .To(x => x.CompanyName)
                 .As(x => new FacetWithIdName { Id = x.Company.Name, Name = x.Company.Name })
                 .AsFilter(x => x.Id != null);
 
-            builder.AddRule(FilterType.Equal)
+            builder.AddRule()
                 .FilterBy(x => x.City)
                 .FilterWhat(x => x.Company.City)
                 .To(x => x.City)
